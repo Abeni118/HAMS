@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import ProfileHeader from "../../components/shared/ProfileHeader";
 import AvatarUpload from "../../components/shared/AvatarUpload";
 import PersonalInfoForm from "../../components/shared/PersonalInfoForm";
-import DoctorProfessionalInfo from "./DoctorProfessionalInfo";
+import NurseProfessionalInfo from "./NurseProfessionalInfo";
 
 const ProfilePage = () => {
   const { authUser, updateProfile, uploadAvatar, isUpdatingProfile } = useAuthStore();
@@ -19,23 +19,13 @@ const ProfilePage = () => {
     dateOfBirth: authUser?.dateOfBirth || "",
     address: authUser?.address || "",
     
-    // Professional
-    educationLevel: authUser?.educationLevel || "",
-    degree: authUser?.degree || "",
-    institution: authUser?.institution || "",
-    graduationYear: authUser?.graduationYear || "",
-    medicalLicenseNumber: authUser?.medicalLicenseNumber || "",
+    // Professional (Nurse Specific)
+    nursingLevel: authUser?.nursingLevel || "",
+    assignedWard: authUser?.assignedWard || "",
+    shiftType: authUser?.shiftType || "",
+    certifications: authUser?.certifications || [],
     yearsOfExperience: authUser?.yearsOfExperience || 0,
-    specialization: authUser?.specialization || "",
-    department: authUser?.department || "",
     biography: authUser?.biography || "",
-    
-    // Availability
-    workingDays: authUser?.workingDays || [],
-    consultationStart: authUser?.consultationStart || "",
-    consultationEnd: authUser?.consultationEnd || "",
-    consultationDuration: authUser?.consultationDuration || 30,
-    emergencyAvailability: authUser?.emergencyAvailability || false,
   });
 
   const handleImageUpload = async (e) => {
@@ -58,17 +48,6 @@ const ProfilePage = () => {
     }));
   };
 
-  const handleWorkingDaysToggle = (day) => {
-    setFormData(prev => {
-      const days = [...prev.workingDays];
-      if (days.includes(day)) {
-        return { ...prev, workingDays: days.filter(d => d !== day) };
-      } else {
-        return { ...prev, workingDays: [...days, day] };
-      }
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     await updateProfile(formData);
@@ -77,8 +56,8 @@ const ProfilePage = () => {
   return (
     <div className="p-8 max-w-5xl mx-auto pb-20">
       <ProfileHeader 
-        title="Doctor Profile" 
-        subtitle="Manage your professional identity and hospital availability." 
+        title="Nurse Profile" 
+        subtitle="Manage your personal information, credentials, and hospital assignment." 
         onSubmit={handleSubmit} 
         isUpdating={isUpdatingProfile} 
       />
@@ -89,7 +68,7 @@ const ProfilePage = () => {
             <AvatarUpload 
               profilePic={authUser?.profilePic} 
               onUpload={handleImageUpload} 
-              tagLabel={authUser?.department || 'Doctor'} 
+              tagLabel={authUser?.nursingLevel || 'Nurse'} 
             />
             <PersonalInfoForm 
               formData={formData} 
@@ -98,10 +77,9 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        <DoctorProfessionalInfo 
+        <NurseProfessionalInfo 
           formData={formData} 
           handleChange={handleChange} 
-          handleWorkingDaysToggle={handleWorkingDaysToggle} 
         />
       </div>
     </div>

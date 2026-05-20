@@ -12,6 +12,9 @@ import settingsRoutes from "./routes/settings.route.js";
 import scheduleRoutes from "./routes/schedule.route.js";
 import patientRoutes from "./routes/patient.route.js";
 import consultationRoutes from "./routes/consultation.route.js";
+import nurseRoutes from "./routes/nurse.route.js";
+import dashboardRoutes from "./routes/dashboard.route.js";
+import notificationRoutes from "./routes/notification.route.js";
 
 dotenv.config();
 
@@ -33,6 +36,9 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/consultations", consultationRoutes);
+app.use("/api/nurse", nurseRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
     res.send("HAMS API Running");

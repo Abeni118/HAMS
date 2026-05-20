@@ -7,7 +7,9 @@ import {
   approveAppointment,
   rejectAppointment,
   rescheduleAppointment,
-  completeAppointment
+  completeAppointment,
+  getRecentPatientAppointments,
+  getUpcomingPatientAppointments
 } from "../controllers/appointment.controller.js";
 
 const router = express.Router();
@@ -15,6 +17,10 @@ const router = express.Router();
 router.get("/", protectRoute, getAppointments);
 router.post("/", protectRoute, createAppointment);
 router.put("/:id/status", protectRoute, updateAppointmentStatus);
+
+// Patient specific routes
+router.get("/patient/recent", protectRoute, getRecentPatientAppointments);
+router.get("/upcoming", protectRoute, getUpcomingPatientAppointments);
 
 // Specific Status Action Routes
 router.put("/approve/:id", protectRoute, approveAppointment);

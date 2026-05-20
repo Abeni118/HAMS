@@ -21,7 +21,9 @@ export const updateProfile = async (req, res) => {
       educationLevel, degree, institution, graduationYear, certifications,
       medicalLicenseNumber, yearsOfExperience, specialization, department,
       biography, languagesSpoken, workingDays, consultationStart, 
-      consultationEnd, consultationDuration, emergencyAvailability
+      consultationEnd, consultationDuration, emergencyAvailability,
+      // Nurse Fields
+      nursingLevel, assignedWard, shiftType
     } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -57,6 +59,10 @@ export const updateProfile = async (req, res) => {
           ...(consultationEnd !== undefined && { consultationEnd }),
           ...(consultationDuration !== undefined && { consultationDuration }),
           ...(emergencyAvailability !== undefined && { emergencyAvailability }),
+          // Nurse Fields
+          ...(nursingLevel !== undefined && { nursingLevel }),
+          ...(assignedWard !== undefined && { assignedWard }),
+          ...(shiftType !== undefined && { shiftType }),
         }
       },
       { returnDocument: 'after' }

@@ -21,6 +21,11 @@ import DoctorReportsPage from "../pages/doctor/ReportsPage";
 import DoctorProfilePage from "../pages/doctor/ProfilePage";
 import DoctorSettingsPage from "../pages/doctor/SettingsPage";
 import NurseDashboard from "../pages/NurseDashboard";
+import VitalsPage from "../pages/nurse/VitalsPage";
+import QueuePage from "../pages/nurse/QueuePage";
+import NurseReportsPage from "../pages/nurse/ReportsPage";
+import NurseSettingsPage from "../pages/nurse/SettingsPage";
+import NurseProfilePage from "../pages/nurse/ProfilePage";
 import AdminDashboard from "../pages/AdminDashboard";
 
 const AppRoutes = () => {
@@ -90,6 +95,11 @@ const AppRoutes = () => {
             <ProtectedRoute allowedRoles={["nurse"]}>
               <Routes>
                 <Route path="" element={<NurseDashboard />} />
+                <Route path="vitals" element={<VitalsPage />} />
+                <Route path="queue" element={<QueuePage />} />
+                <Route path="reports" element={<NurseReportsPage />} />
+                <Route path="profile" element={<NurseProfilePage />} />
+                <Route path="settings" element={<NurseSettingsPage />} />
                 {/* Add more nurse routes here */}
               </Routes>
             </ProtectedRoute>

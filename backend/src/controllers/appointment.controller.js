@@ -115,3 +115,33 @@ export const rescheduleAppointment = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const getRecentPatientAppointments = async (req, res) => {
+  try {
+    const appointments = await Appointment.find({ patientId: req.user._id })
+      .populate("doctorId", "fullName department profilePic")
+      .sort({ date: -1, timeSlot: -1 })
+      .limit(5);
+    res.status(200).json(appointments);
+  } catch (error) {
+    console.error("Error in getRecentPatientAppointments:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const getUpcomingPatientAppointments = async (req, res) => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const appointments = await Appointment.find({ 
+      patientId: req.user._id,
+      date: { $gte: today },
+      status: { $in: ["Pending", "Approved"] }
+    })
+      .populate("doctorId", "fullName department profilePic")
+      .sort({ date: 1, timeSlot: 1 });
+    res.status(200).json(appointments);
+  } catch (error) {
+    console.error("Error in getUpcomingPatientAppointments:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};

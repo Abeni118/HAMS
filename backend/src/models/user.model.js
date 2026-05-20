@@ -90,6 +90,11 @@ const userSchema = new mongoose.Schema(
     consultationDuration: { type: Number, default: 30 },
     emergencyAvailability: { type: Boolean, default: false },
 
+    // Professional Fields (Nurse specific)
+    nursingLevel: { type: String, default: "" },
+    assignedWard: { type: String, default: "" },
+    shiftType: { type: String, default: "" },
+
     settings: {
       emailNotifications: { type: Boolean, default: true },
       smsNotifications: { type: Boolean, default: false },
