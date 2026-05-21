@@ -28,3 +28,31 @@ export const getPatientDashboard = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const getDoctorDashboard = async (req, res) => {
+  try {
+    const doctorId = req.user._id;
+
+    const [
+      todaysPatients,
+      totalAppointments,
+      pendingReports,
+      surgeries
+    ] = await Promise.all([
+      Appointment.countDocuments({ doctorId, date: new Date().toISOString().split("T")[0] }),
+      Appointment.countDocuments({ doctorId }),
+      Report.countDocuments({ doctorId, status: "Draft" }),
+      Appointment.countDocuments({ doctorId, status: "Approved", department: /Surgery/i }) // Rough estimate based on dept
+    ]);
+
+    res.status(200).json({
+      todaysPatients,
+      totalAppointments,
+      pendingReports,
+      surgeries,
+    });
+  } catch (error) {
+    console.error("Error in getDoctorDashboard:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};

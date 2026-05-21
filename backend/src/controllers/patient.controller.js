@@ -2,6 +2,8 @@ import User from "../models/user.model.js";
 import Appointment from "../models/appointment.model.js";
 import Report from "../models/report.model.js";
 import Consultation from "../models/consultation.model.js";
+import Vital from "../models/vital.model.js";
+import NurseNote from "../models/nurseNote.model.js";
 
 export const getDoctorPatients = async (req, res) => {
   try {
@@ -38,9 +40,16 @@ export const getDoctorPatients = async (req, res) => {
 export const getPatientDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    const patient = await User.findById(id).select("-password");
+    const patient = await User.findById(id).select("-password").lean();
     if (!patient) return res.status(404).json({ message: "Patient not found" });
     
+    // Fetch latest vitals and nurse notes
+    const latestVitals = await Vital.findOne({ patientId: id }).sort({ createdAt: -1 });
+    const latestNurseNotes = await NurseNote.find({ patientId: id }).sort({ createdAt: -1 }).limit(3);
+
+    patient.latestVitals = latestVitals;
+    patient.latestNurseNotes = latestNurseNotes;
+
     res.status(200).json(patient);
   } catch (error) {
     console.error("Error in getPatientDetails: ", error);

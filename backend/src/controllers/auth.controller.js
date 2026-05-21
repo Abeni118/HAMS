@@ -13,6 +13,10 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
+    if (role === "admin") {
+      return res.status(403).json({ message: "Admin registration is restricted." });
+    }
+
     const user = await User.findOne({ email });
 
     if (user) return res.status(400).json({ message: "Email already exists" });

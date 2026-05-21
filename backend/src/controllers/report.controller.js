@@ -3,6 +3,7 @@ import path from "path";
 import Report from "../models/report.model.js";
 import User from "../models/user.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import { createNotification } from "./notification.controller.js";
 
 export const getPatientReports = async (req, res) => {
   try {
@@ -70,7 +71,7 @@ const seedDummyReports = async (patientId) => {
   if (!doctor) {
      doctor = await User.create({
        fullName: "Dr. Sarah Mitchell",
-       email: "sarah.mitchell@medisync.com",
+       email: "sarah.mitchell@hams.gov.et",
        password: "hashedpassword123",
        role: "doctor",
      });
@@ -163,6 +164,19 @@ export const createReport = async (req, res) => {
 
     const savedReport = await report.save();
     await savedReport.populate("patientId", "fullName profilePic email");
+
+    // Notify Patient
+    await createNotification({
+      userId: patientId,
+      title: "New Report Available",
+      message: `Dr. ${req.user.fullName} uploaded a new report: ${title}.`,
+      type: "report",
+      relatedEntityId: savedReport._id,
+      relatedEntityType: "report",
+      role: "patient",
+      priority: "normal"
+    });
+
     res.status(201).json(savedReport);
   } catch (error) {
     console.error("Error in createReport:", error);

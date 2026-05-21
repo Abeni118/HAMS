@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   Users, Search, Filter, Loader2, User, Activity, Clock, 
-  FileText, Calendar, Plus, X, Stethoscope, FileJson, Pill
+  FileText, Calendar, Plus, X, Stethoscope, FileJson, Pill, HeartPulse, FileSymlink
 } from "lucide-react";
 import { usePatientStore } from "../../store/usePatientStore";
 import toast from "react-hot-toast";
@@ -259,6 +259,51 @@ const PatientsPage = () => {
                             </div>
                           ) : <p className="text-sm text-slate-500">No pre-existing conditions reported</p>}
                         </div>
+                        
+                        {/* NURSE VITALS INJECTION */}
+                        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm md:col-span-2">
+                          <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+                            <HeartPulse className="w-4 h-4 text-emerald-500" /> Latest Vitals
+                          </h4>
+                          {selectedPatient.latestVitals ? (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">BP</p>
+                                <p className="font-semibold text-slate-700">{selectedPatient.latestVitals.bloodPressure || 'N/A'}</p>
+                              </div>
+                              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Temp</p>
+                                <p className="font-semibold text-slate-700">{selectedPatient.latestVitals.temperature || 'N/A'}°C</p>
+                              </div>
+                              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Heart Rate</p>
+                                <p className="font-semibold text-slate-700">{selectedPatient.latestVitals.heartRate || 'N/A'} bpm</p>
+                              </div>
+                              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Oxygen</p>
+                                <p className="font-semibold text-slate-700">{selectedPatient.latestVitals.oxygenLevel || 'N/A'}%</p>
+                              </div>
+                            </div>
+                          ) : <p className="text-sm text-slate-500">No recent vitals recorded by nurse.</p>}
+                        </div>
+
+                        {/* NURSE NOTES INJECTION */}
+                        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm md:col-span-2">
+                          <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+                            <FileSymlink className="w-4 h-4 text-amber-500" /> Nurse Triage Notes
+                          </h4>
+                          {selectedPatient.latestNurseNotes?.length > 0 ? (
+                            <div className="space-y-3">
+                              {selectedPatient.latestNurseNotes.map((note) => (
+                                <div key={note._id} className="bg-amber-50/50 p-3 rounded-lg border border-amber-100">
+                                  <p className="text-xs font-bold text-amber-700 mb-1">{new Date(note.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</p>
+                                  <p className="text-sm text-slate-700">{note.noteContent}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : <p className="text-sm text-slate-500">No recent triage notes.</p>}
+                        </div>
+
                       </div>
                     </div>
                   )}

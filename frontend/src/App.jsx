@@ -1,7 +1,7 @@
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/useAuthStore";
 import { useEffect } from "react";
-import Loader from "./components/Loader";
+import HealthcareLoader from "./components/HealthcareLoader";
 import AppRoutes from "./routes/AppRoutes";
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
   if (isCheckingAuth) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
-        <Loader className="w-16 h-16" />
+        <HealthcareLoader className="w-20 h-20 text-[#698bf4]" />
       </div>
     );
   }

@@ -45,7 +45,7 @@ const getSidebarLinks = (role) => {
         { name: "Users", path: "/admin/users", icon: Users },
         { name: "Departments", path: "/admin/departments", icon: Building },
         { name: "Reports", path: "/admin/reports", icon: FileText },
-        { name: "Audit Log", path: "/admin/audit", icon: ClipboardList },
+        { name: "Audit Log", path: "/admin/audit-log", icon: ClipboardList },
         { name: "Settings", path: "/admin/settings", icon: Settings },
       ];
     default:
@@ -65,7 +65,7 @@ const Sidebar = () => {
         <div className="w-8 h-8 rounded-lg bg-[#698bf4] flex items-center justify-center mr-3 shadow-sm">
           <HeartPulse className="w-5 h-5 text-white" />
         </div>
-        <h1 className="text-xl font-bold text-[#698bf4] tracking-tight">MediSync</h1>
+        <h1 className="text-xl font-bold text-[#698bf4] tracking-tight">HAMS</h1>
       </div>
 
       {/* Navigation Links */}

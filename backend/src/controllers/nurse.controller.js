@@ -2,6 +2,8 @@ import Vital from "../models/vital.model.js";
 import PatientQueue from "../models/patientQueue.model.js";
 import NurseNote from "../models/nurseNote.model.js";
 import User from "../models/user.model.js";
+import AuditLog from "../models/auditLog.model.js";
+import { createNotification } from "./notification.controller.js";
 
 // --- Vitals ---
 
@@ -28,6 +30,15 @@ export const recordVitals = async (req, res) => {
     });
 
     await newVital.save();
+
+    await AuditLog.create({
+      action: "Vitals Recorded",
+      performedBy: nurseId,
+      details: `Vitals recorded for patient ${patientId}`,
+      entityType: "Vital",
+      entityId: newVital._id,
+    });
+
     res.status(201).json(newVital);
   } catch (error) {
     console.error("Error in recordVitals controller:", error.message);
@@ -88,6 +99,20 @@ export const addToQueue = async (req, res) => {
       .populate("patientId", "fullName profilePic")
       .populate("doctorId", "fullName");
 
+    // Notify Doctor
+    if (doctorId) {
+      await createNotification({
+        userId: doctorId,
+        title: "Patient Added to Queue",
+        message: `${populatedEntry.patientId.fullName} has been triaged and is waiting.`,
+        type: "system",
+        relatedEntityId: populatedEntry._id,
+        relatedEntityType: "queue",
+        role: "doctor",
+        priority: priority === "Emergency" ? "urgent" : "normal"
+      });
+    }
+
     res.status(201).json(populatedEntry);
   } catch (error) {
     console.error("Error in addToQueue controller:", error.message);
@@ -128,6 +153,28 @@ export const updateQueueStatus = async (req, res) => {
     if (!updatedEntry) {
       return res.status(404).json({ message: "Queue entry not found" });
     }
+
+    // Notify Doctor if Patient is ready or emergency
+    if (updatedEntry.doctorId && (status === "In Progress" || status === "Emergency")) {
+      await createNotification({
+        userId: updatedEntry.doctorId._id,
+        title: status === "Emergency" ? "EMERGENCY: Patient Ready" : "Patient Ready in Triage",
+        message: `${updatedEntry.patientId.fullName} has completed triage and is waiting for consultation.`,
+        type: status === "Emergency" ? "emergency" : "queue",
+        relatedEntityId: updatedEntry._id,
+        relatedEntityType: "queue",
+        role: "doctor",
+        priority: status === "Emergency" ? "urgent" : "normal"
+      });
+    }
+
+    await AuditLog.create({
+      action: "Queue Status Updated",
+      performedBy: req.user._id,
+      details: `Queue status changed to ${status} for patient ${updatedEntry.patientId._id}`,
+      entityType: "PatientQueue",
+      entityId: updatedEntry._id,
+    });
 
     res.status(200).json(updatedEntry);
   } catch (error) {
@@ -178,6 +225,14 @@ export const addNurseNote = async (req, res) => {
     const newNote = new NurseNote({ patientId, nurseId, noteContent });
     await newNote.save();
     
+    await AuditLog.create({
+      action: "Nurse Note Added",
+      performedBy: nurseId,
+      details: `Added triage note for patient ${patientId}`,
+      entityType: "NurseNote",
+      entityId: newNote._id,
+    });
+
     res.status(201).json(newNote);
   } catch (error) {
     console.error("Error in addNurseNote controller:", error.message);

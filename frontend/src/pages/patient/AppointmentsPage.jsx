@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { Calendar, Clock, Plus, Search, Filter, MoreVertical, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { useAppointmentStore } from "../../store/useAppointmentStore";
 import BookAppointmentModal from "../../components/patient/BookAppointmentModal";
+import RescheduleAppointmentModal from "../../components/patient/RescheduleAppointmentModal";
 
 const AppointmentsPage = () => {
   const { appointments, fetchAppointments, isFetchingAppointments, updateAppointmentStatus } = useAppointmentStore();
   const [filter, setFilter] = useState("All");
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [rescheduleModalData, setRescheduleModalData] = useState({ isOpen: false, appointment: null });
 
   useEffect(() => {
     fetchAppointments();
@@ -173,7 +175,10 @@ const AppointmentsPage = () => {
                       <button onClick={() => handleCancel(apt._id)} className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors">
                         Cancel
                       </button>
-                      <button className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold text-white bg-[#698bf4] hover:bg-[#5a7dec] rounded-xl transition-colors shadow-sm shadow-[#698bf4]/20">
+                      <button 
+                        onClick={() => setRescheduleModalData({ isOpen: true, appointment: apt })}
+                        className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold text-white bg-[#698bf4] hover:bg-[#5a7dec] rounded-xl transition-colors shadow-sm shadow-[#698bf4]/20"
+                      >
                         Reschedule
                       </button>
                     </>
@@ -194,6 +199,12 @@ const AppointmentsPage = () => {
       <BookAppointmentModal 
         isOpen={isBookModalOpen} 
         onClose={() => setIsBookModalOpen(false)} 
+      />
+
+      <RescheduleAppointmentModal
+        isOpen={rescheduleModalData.isOpen}
+        onClose={() => setRescheduleModalData({ isOpen: false, appointment: null })}
+        appointment={rescheduleModalData.appointment}
       />
     </div>
   );

@@ -87,7 +87,7 @@ const ProfilePage = () => {
             <div className="relative mb-4 group">
               <div className="w-32 h-32 rounded-full overflow-hidden bg-slate-100 border-4 border-white shadow-md">
                 {authUser?.profilePic ? (
-                  <img src={authUser.profilePic} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={`${authUser.profilePic}?t=${Date.now()}`} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-[#e0e7ff] text-[#698bf4]">
                     <User className="w-12 h-12" />

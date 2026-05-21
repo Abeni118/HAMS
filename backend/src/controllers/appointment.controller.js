@@ -1,4 +1,6 @@
 import Appointment from "../models/appointment.model.js";
+import PatientQueue from "../models/patientQueue.model.js";
+import { createNotification } from "./notification.controller.js";
 
 export const getAppointments = async (req, res) => {
   try {
@@ -36,6 +38,18 @@ export const createAppointment = async (req, res) => {
     const savedAppointment = await appointment.save();
     await savedAppointment.populate("doctorId", "fullName profilePic");
     
+    // Notify Doctor
+    await createNotification({
+      userId: doctorId,
+      title: "New Appointment Assigned",
+      message: `${req.user.fullName} requested an appointment for ${date} at ${timeSlot}.`,
+      type: "appointment",
+      relatedEntityId: savedAppointment._id,
+      relatedEntityType: "appointment",
+      role: "doctor",
+      priority: "normal"
+    });
+
     res.status(201).json(savedAppointment);
   } catch (error) {
     console.error("Error in createAppointment: ", error);
@@ -66,6 +80,34 @@ export const approveAppointment = async (req, res) => {
       { status: "Approved" },
       { returnDocument: "after" }
     ).populate("patientId", "fullName profilePic phone");
+
+    // Add to Nurse Queue automatically
+    if (appointment) {
+      // Find admin or system user as the creator, or leave nurseId null. Schema allows nurseId? Let's assume it's created by System. 
+      // We will assign a queue entry without a specific nurse, any available nurse can pick it up.
+      const queueEntry = new PatientQueue({
+        patientId: appointment.patientId._id,
+        doctorId: appointment.doctorId,
+        priority: "Normal",
+        notes: "Automatically queued from appointment approval.",
+      });
+      await queueEntry.save();
+    }
+
+    // Notify Patient
+    if (appointment) {
+      await createNotification({
+        userId: appointment.patientId._id,
+        title: "Appointment Confirmed",
+        message: `Your appointment for ${appointment.date} at ${appointment.timeSlot} has been approved.`,
+        type: "appointment",
+        relatedEntityId: appointment._id,
+        relatedEntityType: "appointment",
+        role: "patient",
+        priority: "normal"
+      });
+    }
+
     res.status(200).json(appointment);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
@@ -79,6 +121,32 @@ export const rejectAppointment = async (req, res) => {
       { status: "Cancelled" },
       { returnDocument: "after" }
     ).populate("patientId", "fullName profilePic phone");
+
+    // Notify Patient
+    if (appointment && req.user.role === "doctor") {
+      await createNotification({
+        userId: appointment.patientId._id,
+        title: "Appointment Cancelled",
+        message: `Your appointment for ${appointment.date} at ${appointment.timeSlot} was cancelled.`,
+        type: "appointment",
+        relatedEntityId: appointment._id,
+        relatedEntityType: "appointment",
+        role: "patient",
+        priority: "normal"
+      });
+    } else if (appointment && req.user.role === "patient") {
+      await createNotification({
+        userId: appointment.doctorId,
+        title: "Appointment Cancelled",
+        message: `Patient ${appointment.patientId.fullName} cancelled their appointment for ${appointment.date} at ${appointment.timeSlot}.`,
+        type: "appointment",
+        relatedEntityId: appointment._id,
+        relatedEntityType: "appointment",
+        role: "doctor",
+        priority: "normal"
+      });
+    }
+
     res.status(200).json(appointment);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
@@ -92,6 +160,14 @@ export const completeAppointment = async (req, res) => {
       { status: "Completed" },
       { returnDocument: "after" }
     ).populate("patientId", "fullName profilePic phone");
+
+    if (appointment) {
+      await PatientQueue.findOneAndUpdate(
+        { patientId: appointment.patientId._id, status: { $ne: "Completed" } },
+        { status: "Completed" }
+      );
+    }
+
     res.status(200).json(appointment);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
@@ -110,6 +186,31 @@ export const rescheduleAppointment = async (req, res) => {
       },
       { returnDocument: "after" }
     ).populate("patientId", "fullName profilePic phone");
+
+    if (appointment && req.user.role === "patient") {
+      await createNotification({
+        userId: appointment.doctorId,
+        title: "Patient Rescheduled Appointment",
+        message: `${appointment.patientId.fullName} rescheduled to ${date} at ${timeSlot}.`,
+        type: "appointment",
+        relatedEntityId: appointment._id,
+        relatedEntityType: "appointment",
+        role: "doctor",
+        priority: "normal"
+      });
+    } else if (appointment && req.user.role === "doctor") {
+      await createNotification({
+        userId: appointment.patientId._id,
+        title: "Appointment Rescheduled",
+        message: `Your doctor rescheduled your appointment to ${date} at ${timeSlot}.`,
+        type: "appointment",
+        relatedEntityId: appointment._id,
+        relatedEntityType: "appointment",
+        role: "patient",
+        priority: "normal"
+      });
+    }
+
     res.status(200).json(appointment);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });

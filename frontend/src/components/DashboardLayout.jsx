@@ -3,6 +3,7 @@ import Navbar from "./Navbar";
 import { Outlet } from "react-router-dom";
 
 const DashboardLayout = () => {
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans text-slate-800">
       <Sidebar />

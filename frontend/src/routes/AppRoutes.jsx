@@ -4,6 +4,13 @@ import { useAuthStore } from "../store/useAuthStore";
 import ProtectedRoute from "../components/ProtectedRoute";
 import DashboardLayout from "../components/DashboardLayout";
 
+// Public Pages
+import HomePage from "../pages/HomePage";
+import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
+import TermsPage from "../pages/TermsPage";
+import UnauthorizedPage from "../pages/UnauthorizedPage";
+import NotFoundPage from "../pages/NotFoundPage";
+
 // Auth Pages
 import LoginPage from "../pages/LoginPage";
 import SignUpPage from "../pages/SignUpPage";
@@ -27,19 +34,31 @@ import NurseReportsPage from "../pages/nurse/ReportsPage";
 import NurseSettingsPage from "../pages/nurse/SettingsPage";
 import NurseProfilePage from "../pages/nurse/ProfilePage";
 import AdminDashboard from "../pages/AdminDashboard";
+import AdminUsers from "../pages/admin/AdminUsers";
+import AdminDepartments from "../pages/admin/AdminDepartments";
+import AdminAppointments from "../pages/admin/AdminAppointments";
+import AdminReports from "../pages/admin/AdminReports";
+import AdminSettings from "../pages/admin/AdminSettings";
+import AdminProfilePage from "../pages/admin/ProfilePage";
+import AdminAuditLogPage from "../pages/admin/AuditLogPage";
 
 const AppRoutes = () => {
   const { authUser } = useAuthStore();
 
   return (
     <Routes>
-      {/* Root Route - Redirects to appropriate dashboard or login */}
+      {/* Root Route - Redirects to appropriate dashboard or shows landing page */}
       <Route 
         path="/" 
         element={
-          authUser ? <Navigate to={`/${authUser.role}`} replace /> : <Navigate to="/login" replace />
+          authUser ? <Navigate to={`/${authUser.role}`} replace /> : <HomePage />
         } 
       />
+
+      {/* Public Legal & Info Routes */}
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       {/* Auth Routes */}
       <Route 
@@ -113,6 +132,13 @@ const AppRoutes = () => {
             <ProtectedRoute allowedRoles={["admin"]}>
               <Routes>
                 <Route path="" element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="departments" element={<AdminDepartments />} />
+                <Route path="appointments" element={<AdminAppointments />} />
+                <Route path="reports" element={<AdminReports />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="profile" element={<AdminProfilePage />} />
+                <Route path="audit-log" element={<AdminAuditLogPage />} />
                 {/* Add more admin routes here */}
               </Routes>
             </ProtectedRoute>
@@ -122,12 +148,7 @@ const AppRoutes = () => {
       </Route>
 
       {/* Catch-all route for 404s */}
-      <Route 
-        path="*" 
-        element={
-          authUser ? <Navigate to={`/${authUser.role}`} replace /> : <Navigate to="/login" replace />
-        } 
-      />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

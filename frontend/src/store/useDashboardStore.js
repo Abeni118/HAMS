@@ -6,16 +6,27 @@ export const useDashboardStore = create((set, get) => ({
   stats: null,
   recentAppointments: [],
   upcomingSchedule: [],
-  notifications: [],
   isLoadingStats: false,
   isLoadingRecent: false,
   isLoadingUpcoming: false,
-  isLoadingNotifications: false,
 
   fetchDashboardStats: async () => {
     set({ isLoadingStats: true });
     try {
       const res = await axiosInstance.get("/dashboard/patient");
+      set({ stats: res.data });
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to fetch stats");
+    } finally {
+      set({ isLoadingStats: false });
+    }
+  },
+
+  fetchDoctorDashboardStats: async () => {
+    set({ isLoadingStats: true });
+    try {
+      const res = await axiosInstance.get("/dashboard/doctor");
       set({ stats: res.data });
     } catch (error) {
       console.error(error);
@@ -51,39 +62,12 @@ export const useDashboardStore = create((set, get) => ({
     }
   },
 
-  fetchNotifications: async () => {
-    set({ isLoadingNotifications: true });
-    try {
-      const res = await axiosInstance.get("/notifications");
-      set({ notifications: res.data });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      set({ isLoadingNotifications: false });
-    }
-  },
-
-  markNotificationAsRead: async (id) => {
-    try {
-      await axiosInstance.put(`/notifications/read/${id}`);
-      set((state) => ({
-        notifications: state.notifications.map((n) =>
-          n._id === id ? { ...n, isRead: true } : n
-        ),
-      }));
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to mark as read");
-    }
-  },
-
   fetchAll: async () => {
-    const { fetchDashboardStats, fetchRecentAppointments, fetchUpcomingSchedule, fetchNotifications } = get();
+    const { fetchDashboardStats, fetchRecentAppointments, fetchUpcomingSchedule } = get();
     await Promise.all([
       fetchDashboardStats(),
       fetchRecentAppointments(),
-      fetchUpcomingSchedule(),
-      fetchNotifications()
+      fetchUpcomingSchedule()
     ]);
   }
 }));

@@ -65,4 +65,23 @@ export const useAppointmentStore = create((set, get) => ({
       set({ isUpdatingStatus: false });
     }
   },
+
+  rescheduleAppointment: async (appointmentId, data) => {
+    set({ isUpdatingStatus: true });
+    try {
+      const res = await axiosInstance.put(`/appointments/reschedule/${appointmentId}`, data);
+      set((state) => ({
+        appointments: state.appointments.map((apt) =>
+          apt._id === appointmentId ? { ...apt, ...res.data } : apt
+        ),
+      }));
+      toast.success("Appointment rescheduled successfully!");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to reschedule appointment");
+      return false;
+    } finally {
+      set({ isUpdatingStatus: false });
+    }
+  },
 }));

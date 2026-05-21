@@ -47,7 +47,6 @@ const SignUpPage = () => {
     { id: "patient", label: "PATIENT", icon: User },
     { id: "doctor", label: "DOCTOR", icon: Hospital },
     { id: "nurse", label: "NURSE", icon: Activity },
-    { id: "admin", label: "ADMIN", icon: Building },
   ];
 
   return (
