@@ -26,7 +26,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: [process.env.CLIENT_URL,
+        "https://hams-1-1pbn.onrender.com"
+    ],
     credentials: true
 }));
 
