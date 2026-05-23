@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useNotificationStore } from "../store/useNotificationStore";
-import { LogOut, Bell, HelpCircle, Search, User as UserIcon, Settings, ChevronDown, Check, Trash2, Calendar as CalendarIcon, FileText, Activity, ShieldAlert, X } from "lucide-react";
+import { LogOut, Bell, HelpCircle, Search, User as UserIcon, Settings, ChevronDown, Check, Trash2, Calendar as CalendarIcon, FileText, Activity, ShieldAlert, X, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ onMenuToggle }) => {
   const { authUser, logout } = useAuthStore();
   const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead, deleteNotification, connectSocket, disconnectSocket } = useNotificationStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -110,8 +110,17 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-slate-200 h-20 flex items-center justify-between px-8 sticky top-0 z-50">
-      
+    <nav className="bg-white border-b border-slate-200 h-20 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30">
+
+      {/* Hamburger — visible on mobile/tablet only */}
+      <button
+        onClick={onMenuToggle}
+        className="lg:hidden p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors mr-2 shrink-0"
+        aria-label="Open sidebar"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
       {/* Search Bar */}
       <div className="flex-1 max-w-2xl">
         <div className="relative">

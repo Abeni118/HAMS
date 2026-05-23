@@ -9,7 +9,8 @@ import {
   FileText,
   Building,
   HeartPulse,
-  ClipboardList
+  ClipboardList,
+  X
 } from "lucide-react";
 
 const getSidebarLinks = (role) => {
@@ -53,19 +54,37 @@ const getSidebarLinks = (role) => {
   }
 };
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { authUser } = useAuthStore();
   const links = getSidebarLinks(authUser?.role);
 
   return (
-    <div className="w-64 bg-[#f8fafc] h-screen fixed top-0 left-0 flex flex-col z-30 border-r border-slate-200">
-      
+    <aside
+      className={`
+        fixed top-0 left-0 h-screen w-64 bg-[#f8fafc] flex flex-col z-50
+        border-r border-slate-200
+        transition-transform duration-300 ease-in-out
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:translate-x-0
+      `}
+      aria-label="Sidebar navigation"
+    >
       {/* Logo Section */}
-      <div className="h-20 flex items-center px-6">
-        <div className="w-8 h-8 rounded-lg bg-[#698bf4] flex items-center justify-center mr-3 shadow-sm">
-          <HeartPulse className="w-5 h-5 text-white" />
+      <div className="h-20 flex items-center justify-between px-6 shrink-0">
+        <div className="flex items-center">
+          <div className="w-8 h-8 rounded-lg bg-[#698bf4] flex items-center justify-center mr-3 shadow-sm">
+            <HeartPulse className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-xl font-bold text-[#698bf4] tracking-tight">HAMS</h1>
         </div>
-        <h1 className="text-xl font-bold text-[#698bf4] tracking-tight">HAMS</h1>
+        {/* Close button — only visible on mobile/tablet */}
+        <button
+          onClick={onClose}
+          className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          aria-label="Close sidebar"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Navigation Links */}
@@ -76,6 +95,7 @@ const Sidebar = () => {
               <NavLink
                 to={link.path}
                 end={link.path.split('/').length <= 2}
+                onClick={onClose}
                 className={({ isActive }) =>
                   `flex items-center justify-between px-6 py-3 transition-all duration-200 relative ${
                     isActive
@@ -85,13 +105,13 @@ const Sidebar = () => {
                 }
               >
                 {/* Active Left Border Indicator */}
-                <div 
+                <div
                   className={`absolute left-0 top-0 bottom-0 w-1 bg-[#698bf4] transition-opacity duration-200 ${
-                    location.pathname === link.path || (link.path.split('/').length <= 2 && location.pathname === link.path) 
+                    location.pathname === link.path || (link.path.split('/').length <= 2 && location.pathname === link.path)
                       ? "opacity-100" : "opacity-0 hidden"
-                  }`} 
+                  }`}
                 />
-                
+
                 <div className="flex items-center">
                   <link.icon className={`w-5 h-5 mr-3`} />
                   <span>{link.name}</span>
@@ -109,7 +129,7 @@ const Sidebar = () => {
       </div>
 
       {/* Bottom Storage Widget */}
-      <div className="p-6">
+      <div className="p-6 shrink-0">
         <div className="bg-[#e0e7ff] rounded-xl p-4">
           <p className="text-xs font-semibold text-slate-700 mb-2">Storage Usage</p>
           <div className="w-full bg-slate-200 rounded-full h-1.5 mb-2">
@@ -118,7 +138,7 @@ const Sidebar = () => {
           <p className="text-[10px] text-slate-500">1.2GB of 2GB used</p>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
 
