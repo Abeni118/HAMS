@@ -9,7 +9,8 @@ import {
   rescheduleAppointment,
   completeAppointment,
   getRecentPatientAppointments,
-  getUpcomingPatientAppointments
+  getUpcomingPatientAppointments,
+  getAppointmentById
 } from "../controllers/appointment.controller.js";
 
 const router = express.Router();
@@ -27,5 +28,8 @@ router.put("/approve/:id", protectRoute, approveAppointment);
 router.put("/reject/:id", protectRoute, rejectAppointment);
 router.put("/reschedule/:id", protectRoute, rescheduleAppointment);
 router.put("/complete/:id", protectRoute, completeAppointment);
+
+// Get single appointment detail (must be last to avoid catching named routes)
+router.get("/:id", protectRoute, getAppointmentById);
 
 export default router;

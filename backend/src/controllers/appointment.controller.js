@@ -238,11 +238,39 @@ export const getUpcomingPatientAppointments = async (req, res) => {
       date: { $gte: today },
       status: { $in: ["Pending", "Approved"] }
     })
-      .populate("doctorId", "fullName department profilePic")
+      .populate("doctorId", "fullName department profilePic specialization")
       .sort({ date: 1, timeSlot: 1 });
     res.status(200).json(appointments);
   } catch (error) {
     console.error("Error in getUpcomingPatientAppointments:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const getAppointmentById = async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id)
+      .populate("doctorId", "fullName profilePic specialization department")
+      .populate("patientId", "fullName profilePic email phoneNumber");
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    // Ownership check: patient can only view their own, doctor can only view their assigned
+    const userId = req.user._id.toString();
+    const isPatient = req.user.role === "patient" && appointment.patientId._id.toString() === userId;
+    const isDoctor = req.user.role === "doctor" && appointment.doctorId._id.toString() === userId;
+    const isAdmin = req.user.role === "admin";
+    const isNurse = req.user.role === "nurse";
+
+    if (!isPatient && !isDoctor && !isAdmin && !isNurse) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    res.status(200).json(appointment);
+  } catch (error) {
+    console.error("Error in getAppointmentById:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
