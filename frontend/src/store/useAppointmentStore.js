@@ -5,10 +5,12 @@ import toast from "react-hot-toast";
 export const useAppointmentStore = create((set, get) => ({
   appointments: [],
   doctors: [],
+  selectedAppointment: null,
   isFetchingAppointments: false,
   isFetchingDoctors: false,
   isBooking: false,
   isUpdatingStatus: false,
+  detailLoading: false,
 
   fetchAppointments: async () => {
     set({ isFetchingAppointments: true });
@@ -84,4 +86,21 @@ export const useAppointmentStore = create((set, get) => ({
       set({ isUpdatingStatus: false });
     }
   },
+
+  fetchAppointmentDetail: async (appointmentId) => {
+    set({ detailLoading: true, selectedAppointment: null });
+    try {
+      const res = await axiosInstance.get(`/appointments/${appointmentId}`);
+      set({ selectedAppointment: res.data });
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 404) toast.error("Appointment not found.");
+      else if (status === 403) toast.error("Access denied.");
+      else toast.error("Failed to load appointment details.");
+    } finally {
+      set({ detailLoading: false });
+    }
+  },
+
+  clearSelectedAppointment: () => set({ selectedAppointment: null }),
 }));
