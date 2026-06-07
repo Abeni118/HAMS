@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Loader2, Hospital, User, Activity, Building, LogIn } from "lucide-react";
 import Input from "../components/Input";
 import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeRole, setActiveRole] = useState("patient");
@@ -15,6 +16,12 @@ const SignUpPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    medicalLicenseNumber: "",
+    specialization: "",
+    department: "",
+    yearsOfExperience: "",
+    licenseNumber: "",
+    shiftPreference: "Day",
   });
 
   const { signup, isSigningUp } = useAuthStore();
@@ -27,6 +34,18 @@ const SignUpPage = () => {
     if (formData.password.length < 6) return toast.error("Password must be at least 6 characters");
     if (formData.password !== formData.confirmPassword) return toast.error("Passwords do not match");
 
+    if (activeRole === "doctor") {
+      if (!formData.medicalLicenseNumber.trim()) return toast.error("Medical license number is required");
+      if (!formData.specialization.trim()) return toast.error("Specialization is required");
+      if (!formData.department) return toast.error("Department is required");
+      if (!formData.yearsOfExperience) return toast.error("Years of experience is required");
+    }
+
+    if (activeRole === "nurse") {
+      if (!formData.licenseNumber.trim()) return toast.error("License number is required");
+      if (!formData.department) return toast.error("Department/Ward selection is required");
+    }
+
     return true;
   };
 
@@ -34,12 +53,40 @@ const SignUpPage = () => {
     e.preventDefault();
     const isValid = validateForm();
     if (isValid === true) {
-      signup({
+      const payload = {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
         role: activeRole,
-      });
+      };
+
+      if (activeRole === "doctor") {
+        payload.medicalLicenseNumber = formData.medicalLicenseNumber;
+        payload.specialization = formData.specialization;
+        payload.department = formData.department;
+        payload.yearsOfExperience = Number(formData.yearsOfExperience) || 0;
+      } else if (activeRole === "nurse") {
+        payload.licenseNumber = formData.licenseNumber;
+        payload.department = formData.department;
+        payload.shiftPreference = formData.shiftPreference;
+      }
+
+      const res = await signup(payload);
+      if (res && res.requiresApproval) {
+        setFormData({
+          fullName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          medicalLicenseNumber: "",
+          specialization: "",
+          department: "",
+          yearsOfExperience: "",
+          licenseNumber: "",
+          shiftPreference: "Day",
+        });
+        navigate("/login");
+      }
     }
   };
 
@@ -169,6 +216,112 @@ const SignUpPage = () => {
                   </button>
                 </div>
               </div>
+
+              {activeRole === "doctor" && (
+                <div className="space-y-4 border-l-2 border-[#698bf4] pl-3 py-1 my-3 bg-slate-50/50 p-3 rounded-r-xl">
+                  <p className="text-xs font-bold text-[#698bf4] uppercase tracking-wider mb-2">Doctor Professional Credentials</p>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Medical License Number</label>
+                    <Input
+                      icon={Building}
+                      type="text"
+                      placeholder="e.g. MD-12345-US"
+                      value={formData.medicalLicenseNumber}
+                      onChange={(e) => setFormData({ ...formData, medicalLicenseNumber: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Specialization</label>
+                    <Input
+                      icon={Activity}
+                      type="text"
+                      placeholder="e.g. Cardiology, Pediatrics"
+                      value={formData.specialization}
+                      onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Department</label>
+                    <select
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#698bf4] outline-none bg-white font-medium"
+                      required
+                    >
+                      <option value="">Select Department</option>
+                      <option value="Cardiology">Cardiology</option>
+                      <option value="Neurology">Neurology</option>
+                      <option value="Pediatrics">Pediatrics</option>
+                      <option value="Orthopedics">Orthopedics</option>
+                      <option value="General Medicine">General Medicine</option>
+                      <option value="Emergency">Emergency</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Years of Experience</label>
+                    <Input
+                      icon={User}
+                      type="number"
+                      placeholder="e.g. 5"
+                      value={formData.yearsOfExperience}
+                      onChange={(e) => setFormData({ ...formData, yearsOfExperience: e.target.value })}
+                      required
+                      min="0"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeRole === "nurse" && (
+                <div className="space-y-4 border-l-2 border-purple-500 pl-3 py-1 my-3 bg-slate-50/50 p-3 rounded-r-xl">
+                  <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-2">Nurse Professional Credentials</p>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">License Number</label>
+                    <Input
+                      icon={Building}
+                      type="text"
+                      placeholder="e.g. RN-98765-US"
+                      value={formData.licenseNumber}
+                      onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Department / Ward</label>
+                    <select
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#698bf4] outline-none bg-white font-medium"
+                      required
+                    >
+                      <option value="">Select Department/Ward</option>
+                      <option value="Cardiology">Cardiology</option>
+                      <option value="Neurology">Neurology</option>
+                      <option value="Pediatrics">Pediatrics</option>
+                      <option value="Orthopedics">Orthopedics</option>
+                      <option value="General Medicine">General Medicine</option>
+                      <option value="Emergency">Emergency</option>
+                      <option value="ICU">ICU</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Shift Preference</label>
+                    <select
+                      value={formData.shiftPreference}
+                      onChange={(e) => setFormData({ ...formData, shiftPreference: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#698bf4] outline-none bg-white font-medium"
+                      required
+                    >
+                      <option value="Day">Day Shift</option>
+                      <option value="Night">Night Shift</option>
+                      <option value="Evening">Evening Shift</option>
+                      <option value="Rotating">Rotating Shift</option>
+                    </select>
+                  </div>
+                </div>
+              )}
 
               <div className="pt-2">
                 <button

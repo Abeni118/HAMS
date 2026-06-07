@@ -1,9 +1,12 @@
 import { NavLink } from "react-router-dom";
+import { useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
+import { useAdminStore } from "../store/useAdminStore";
 import {
   LayoutDashboard,
   Calendar,
   Users,
+  UserCheck,
   Settings,
   Activity,
   FileText,
@@ -13,7 +16,7 @@ import {
   X
 } from "lucide-react";
 
-const getSidebarLinks = (role) => {
+const getSidebarLinks = (role, pendingApprovalsCount) => {
   switch (role) {
     case "patient":
       return [
@@ -42,6 +45,7 @@ const getSidebarLinks = (role) => {
     case "admin":
       return [
         { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
+        { name: "Pending Approvals", path: "/admin/approvals", icon: UserCheck, badge: pendingApprovalsCount || null },
         { name: "Appointments", path: "/admin/appointments", icon: Calendar, badge: 4 },
         { name: "Users", path: "/admin/users", icon: Users },
         { name: "Departments", path: "/admin/departments", icon: Building },
@@ -56,7 +60,15 @@ const getSidebarLinks = (role) => {
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { authUser } = useAuthStore();
-  const links = getSidebarLinks(authUser?.role);
+  const { pendingApprovals, fetchPendingApprovals } = useAdminStore();
+
+  useEffect(() => {
+    if (authUser?.role === "admin") {
+      fetchPendingApprovals();
+    }
+  }, [authUser, fetchPendingApprovals]);
+
+  const links = getSidebarLinks(authUser?.role, pendingApprovals.length);
 
   return (
     <aside
