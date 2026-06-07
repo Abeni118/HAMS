@@ -31,10 +31,17 @@ export const useAuthStore = create((set) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
-      set({ authUser: res.data });
-      toast.success("Account created successfully");
+      if (res.data.requiresApproval) {
+        toast.success(res.data.message || "Registration submitted successfully. Awaiting administrator approval.");
+        return { requiresApproval: true };
+      } else {
+        set({ authUser: res.data });
+        toast.success("Account created successfully");
+        return { requiresApproval: false };
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
+      return { error: true };
     } finally {
       set({ isSigningUp: false });
     }

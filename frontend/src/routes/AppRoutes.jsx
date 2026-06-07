@@ -41,6 +41,7 @@ import AdminReports from "../pages/admin/AdminReports";
 import AdminSettings from "../pages/admin/AdminSettings";
 import AdminProfilePage from "../pages/admin/ProfilePage";
 import AdminAuditLogPage from "../pages/admin/AuditLogPage";
+import AdminApprovals from "../pages/admin/AdminApprovals";
 
 const AppRoutes = () => {
   const { authUser } = useAuthStore();
@@ -133,6 +134,7 @@ const AppRoutes = () => {
               <Routes>
                 <Route path="" element={<AdminDashboard />} />
                 <Route path="users" element={<AdminUsers />} />
+                <Route path="approvals" element={<AdminApprovals />} />
                 <Route path="departments" element={<AdminDepartments />} />
                 <Route path="appointments" element={<AdminAppointments />} />
                 <Route path="reports" element={<AdminReports />} />

@@ -11,6 +11,7 @@ export const useAdminStore = create((set, get) => ({
   reports: [],
   departments: [],
   auditLogs: [],
+  pendingApprovals: [],
   
   isLoadingStats: false,
   isLoadingUsers: false,
@@ -18,6 +19,7 @@ export const useAdminStore = create((set, get) => ({
   isLoadingAppointments: false,
   isLoadingReports: false,
   isLoadingAuditLogs: false,
+  isLoadingApprovals: false,
   
   // Dashboard Stats
   fetchDashboardStats: async () => {
@@ -184,6 +186,48 @@ export const useAdminStore = create((set, get) => ({
       toast.error(error.response?.data?.message || "Failed to fetch audit logs");
     } finally {
       set({ isLoadingAuditLogs: false });
+    }
+  },
+
+  fetchPendingApprovals: async () => {
+    set({ isLoadingApprovals: true });
+    try {
+      const res = await axiosInstance.get("/admin/approvals");
+      set({ pendingApprovals: res.data });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch pending approvals");
+    } finally {
+      set({ isLoadingApprovals: false });
+    }
+  },
+
+  approveUser: async (id) => {
+    try {
+      const res = await axiosInstance.put(`/admin/approvals/${id}/approve`);
+      set((state) => ({
+        pendingApprovals: state.pendingApprovals.filter((u) => u._id !== id),
+        users: state.users.map((u) => u._id === id ? { ...u, approvalStatus: "approved" } : u)
+      }));
+      toast.success(res.data.message || "User approved successfully");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to approve user");
+      return false;
+    }
+  },
+
+  rejectUser: async (id) => {
+    try {
+      const res = await axiosInstance.put(`/admin/approvals/${id}/reject`);
+      set((state) => ({
+        pendingApprovals: state.pendingApprovals.filter((u) => u._id !== id),
+        users: state.users.map((u) => u._id === id ? { ...u, approvalStatus: "rejected" } : u)
+      }));
+      toast.success(res.data.message || "User rejected successfully");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to reject user");
+      return false;
     }
   }
 
