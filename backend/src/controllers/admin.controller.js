@@ -440,7 +440,10 @@ export const createAuditLog = async (req, res) => {
 
 export const getPendingApprovals = async (req, res) => {
   try {
-    const pending = await User.find({ approvalStatus: "pending" }).select("-password").sort({ createdAt: -1 });
+    const pending = await User.find({ 
+      role: { $in: ["doctor", "nurse"] }, 
+      approvalStatus: "pending" 
+    }).select("-password").sort({ createdAt: -1 });
     res.status(200).json(pending);
   } catch (error) {
     console.error("Error in getPendingApprovals:", error.message);
