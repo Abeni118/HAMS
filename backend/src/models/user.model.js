@@ -21,6 +21,11 @@ const userSchema = new mongoose.Schema(
       enum: ["patient", "doctor", "nurse", "admin"],
       default: "patient",
     },
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
     profilePic: {
       type: String,
       default: "",

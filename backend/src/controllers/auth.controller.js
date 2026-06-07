@@ -24,17 +24,36 @@ export const signup = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const isStaff = role === "doctor" || role === "nurse";
+    const approvalStatus = isStaff ? "pending" : "approved";
+
     const newUser = new User({
       fullName,
       email,
       password: hashedPassword,
       role: role || "patient",
+      approvalStatus,
+      // Professional Fields
+      medicalLicenseNumber: req.body.medicalLicenseNumber || req.body.licenseNumber || "",
+      specialization: req.body.specialization || "",
+      department: req.body.department || "",
+      yearsOfExperience: req.body.yearsOfExperience || 0,
+      assignedWard: role === "nurse" ? (req.body.department || req.body.assignedWard || "") : "",
+      shiftType: role === "nurse" ? (req.body.shiftPreference || req.body.shiftType || "") : "",
     });
 
     if (newUser) {
-      // generate jwt token here
-      generateTokenAndSetCookie(newUser._id, res);
       await newUser.save();
+
+      if (isStaff) {
+        return res.status(201).json({
+          message: "Registration submitted successfully. Awaiting administrator approval.",
+          requiresApproval: true
+        });
+      }
+
+      // generate jwt token for patients
+      generateTokenAndSetCookie(newUser._id, res);
 
       res.status(201).json({
         _id: newUser._id,
