@@ -10,7 +10,8 @@ import {
   getDepartments, createDepartment, updateDepartment, deleteDepartment,
   getAdminProfile, updateAdminProfile, uploadAdminAvatar,
   getAuditLogs, createAuditLog,
-  createAdmin, grantAdminAccess
+  createAdmin, grantAdminAccess,
+  getPendingApprovals, approveUser, rejectUser
 } from "../controllers/admin.controller.js";
 
 const router = express.Router();
@@ -29,6 +30,11 @@ router.delete("/users/delete/:id", deleteUser);
 router.put("/users/toggle-status/:id", toggleUserStatus);
 router.post("/create-admin", createAdmin);
 router.put("/grant-admin/:id", grantAdminAccess);
+
+// Approvals
+router.get("/approvals", getPendingApprovals);
+router.put("/approvals/:id/approve", approveUser);
+router.put("/approvals/:id/reject", rejectUser);
 
 // Doctors
 router.get("/doctors", getDoctors);

@@ -437,3 +437,93 @@ export const createAuditLog = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getPendingApprovals = async (req, res) => {
+  try {
+    const pending = await User.find({ approvalStatus: "pending" }).select("-password").sort({ createdAt: -1 });
+    res.status(200).json(pending);
+  } catch (error) {
+    console.error("Error in getPendingApprovals:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const approveUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.approvalStatus = "approved";
+    await user.save();
+
+    // Create Audit Log
+    const auditLog = new AuditLog({
+      actorId: req.user._id,
+      actorRole: req.user.role,
+      action: "APPROVE_USER",
+      entityType: "User",
+      entityId: user._id,
+      details: `Admin ${req.user.fullName} approved registration for ${user.fullName} (${user.role})`,
+      ipAddress: req.ip || req.connection?.remoteAddress || "127.0.0.1"
+    });
+    await auditLog.save();
+
+    // Send notification
+    await createNotification({
+      userId: user._id,
+      title: "Account Approved",
+      message: "Your account has been approved. You may now log in.",
+      type: "system",
+      relatedEntityId: user._id,
+      relatedEntityType: "User",
+      role: user.role,
+      priority: "normal"
+    });
+
+    res.status(200).json({ message: "User approved successfully", user: { _id: user._id, fullName: user.fullName, approvalStatus: user.approvalStatus } });
+  } catch (error) {
+    console.error("Error in approveUser:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const rejectUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.approvalStatus = "rejected";
+    await user.save();
+
+    // Create Audit Log
+    const auditLog = new AuditLog({
+      actorId: req.user._id,
+      actorRole: req.user.role,
+      action: "REJECT_USER",
+      entityType: "User",
+      entityId: user._id,
+      details: `Admin ${req.user.fullName} rejected registration for ${user.fullName} (${user.role})`,
+      ipAddress: req.ip || req.connection?.remoteAddress || "127.0.0.1"
+    });
+    await auditLog.save();
+
+    // Send notification
+    await createNotification({
+      userId: user._id,
+      title: "Account Rejected",
+      message: "Your registration request has been rejected.",
+      type: "system",
+      relatedEntityId: user._id,
+      relatedEntityType: "User",
+      role: user.role,
+      priority: "normal"
+    });
+
+    res.status(200).json({ message: "User rejected successfully", user: { _id: user._id, fullName: user.fullName, approvalStatus: user.approvalStatus } });
+  } catch (error) {
+    console.error("Error in rejectUser:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

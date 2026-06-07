@@ -21,6 +21,11 @@ export const protectRoute = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (user.approvalStatus && user.approvalStatus !== "approved") {
+      res.cookie("jwt", "", { maxAge: 0 });
+      return res.status(403).json({ message: `Access denied. Your account status is ${user.approvalStatus}.` });
+    }
+
     req.user = user;
 
     next();

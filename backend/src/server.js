@@ -69,7 +69,8 @@ const seedAdmin = async () => {
                     fullName: "System Administrator",
                     email: adminEmail,
                     password: hashedPassword,
-                    role: "admin"
+                    role: "admin",
+                    approvalStatus: "approved"
                 });
                 await admin.save();
                 console.log("Bootstrap Admin account created.");

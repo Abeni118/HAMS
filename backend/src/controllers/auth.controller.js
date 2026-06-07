@@ -90,6 +90,14 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    if (user.approvalStatus === "pending") {
+      return res.status(403).json({ message: "Your account is awaiting administrator approval." });
+    }
+
+    if (user.approvalStatus === "rejected") {
+      return res.status(403).json({ message: "Your registration request was rejected." });
+    }
+
     generateTokenAndSetCookie(user._id, res);
 
     res.status(200).json({
