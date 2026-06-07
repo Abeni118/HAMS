@@ -6,6 +6,7 @@ import { connectDB } from "./lib/db.js";
 import { app, server } from "./lib/socket.js";
 import User from "./models/user.model.js";
 import bcrypt from "bcryptjs";
+import { protectWithArcjet } from "./middleware/arcjetMiddleware.js";
 
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
@@ -34,6 +35,8 @@ app.use(cookieParser());
  methods:["GET","POST","PUT","DELETE","PATCH"],
  allowedHeaders:["Content-Type","Authorization"]
 }))
+
+app.use(protectWithArcjet);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
