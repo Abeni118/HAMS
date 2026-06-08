@@ -36,8 +36,6 @@ const VitalsPage = () => {
     );
   });
 
-  const selectedPatient = (patients || []).find(p => p && p._id === formData.patientId);
-  
   const location = useLocation();
   const prefilledPatientId = location.state?.patientId || "";
   
@@ -52,6 +50,8 @@ const VitalsPage = () => {
     bloodSugar: "",
     notes: ""
   });
+
+  const selectedPatient = (patients || []).find(p => p && p._id === formData.patientId);
 
   const handleSearch = (e) => {
     e.preventDefault();
