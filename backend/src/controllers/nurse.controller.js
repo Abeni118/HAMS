@@ -33,7 +33,8 @@ export const recordVitals = async (req, res) => {
 
     await AuditLog.create({
       action: "Vitals Recorded",
-      performedBy: nurseId,
+      actorId: nurseId,
+      actorRole: "nurse",
       details: `Vitals recorded for patient ${patientId}`,
       entityType: "Vital",
       entityId: newVital._id,
@@ -170,7 +171,8 @@ export const updateQueueStatus = async (req, res) => {
 
     await AuditLog.create({
       action: "Queue Status Updated",
-      performedBy: req.user._id,
+      actorId: req.user._id,
+      actorRole: "nurse",
       details: `Queue status changed to ${status} for patient ${updatedEntry.patientId._id}`,
       entityType: "PatientQueue",
       entityId: updatedEntry._id,
@@ -227,7 +229,8 @@ export const addNurseNote = async (req, res) => {
     
     await AuditLog.create({
       action: "Nurse Note Added",
-      performedBy: nurseId,
+      actorId: nurseId,
+      actorRole: "nurse",
       details: `Added triage note for patient ${patientId}`,
       entityType: "NurseNote",
       entityId: newNote._id,
