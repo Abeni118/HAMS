@@ -26,16 +26,17 @@ const VitalsPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredPatients = patients.filter(p => {
-    const term = patientSearchTerm.toLowerCase();
+  const filteredPatients = (patients || []).filter(p => {
+    if (!p) return false;
+    const term = (patientSearchTerm || "").toLowerCase();
     return (
-      p.fullName?.toLowerCase().includes(term) ||
-      p.email?.toLowerCase().includes(term) ||
-      p.medicalRecordNumber?.toLowerCase().includes(term)
+      p.fullName?.toLowerCase()?.includes(term) ||
+      p.email?.toLowerCase()?.includes(term) ||
+      p.medicalRecordNumber?.toLowerCase()?.includes(term)
     );
   });
 
-  const selectedPatient = patients.find(p => p._id === formData.patientId);
+  const selectedPatient = (patients || []).find(p => p && p._id === formData.patientId);
   
   const location = useLocation();
   const prefilledPatientId = location.state?.patientId || "";
@@ -57,10 +58,12 @@ const VitalsPage = () => {
     if (patientIdSearch.trim()) {
       const term = patientIdSearch.toLowerCase().trim();
       // Only find exact or partial matches locally to resolve the ID securely
-      const matchedPatient = patients.find(p => 
-        p.fullName?.toLowerCase().includes(term) ||
-        p.email?.toLowerCase().includes(term) ||
-        p.medicalRecordNumber?.toLowerCase().includes(term)
+      const matchedPatient = (patients || []).find(p => 
+        p && (
+          p.fullName?.toLowerCase()?.includes(term) ||
+          p.email?.toLowerCase()?.includes(term) ||
+          p.medicalRecordNumber?.toLowerCase()?.includes(term)
+        )
       );
       
       if (matchedPatient) {
