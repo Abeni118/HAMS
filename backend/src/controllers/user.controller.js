@@ -11,6 +11,16 @@ export const getDoctors = async (req, res) => {
   }
 };
 
+export const getPatients = async (req, res) => {
+  try {
+    const patients = await User.find({ role: "patient" }).select("-password");
+    res.status(200).json(patients);
+  } catch (error) {
+    console.error("Error in getPatients: ", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;

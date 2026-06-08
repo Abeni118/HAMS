@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { protectRoute } from "../middleware/protectRoute.js";
-import { getDoctors, updateProfile, uploadAvatar } from "../controllers/user.controller.js";
+import { getDoctors, getPatients, updateProfile, uploadAvatar } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
@@ -12,6 +12,7 @@ const upload = multer({
 });
 
 router.get("/doctors", protectRoute, getDoctors);
+router.get("/patients", protectRoute, getPatients);
 router.put("/update-profile", protectRoute, updateProfile);
 router.post("/upload-avatar", protectRoute, upload.single("avatar"), uploadAvatar);
 

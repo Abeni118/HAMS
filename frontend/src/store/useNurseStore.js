@@ -19,7 +19,7 @@ export const useNurseStore = create((set, get) => ({
   fetchPatients: async () => {
     set({ isFetchingPatients: true });
     try {
-      const res = await axiosInstance.get("/patients");
+      const res = await axiosInstance.get("/users/patients");
       set({ patients: res.data });
     } catch (error) {
       console.error("Error fetching patients:", error);
