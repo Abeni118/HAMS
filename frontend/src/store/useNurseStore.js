@@ -19,11 +19,17 @@ export const useNurseStore = create((set, get) => ({
   fetchPatients: async () => {
     set({ isFetchingPatients: true });
     try {
+      console.log("Fetching patients from /users/patients...");
       const res = await axiosInstance.get("/users/patients");
-      set({ patients: res.data });
+      console.log("API Response Status:", res.status);
+      console.log("API Response Data:", res.data);
+      console.log("Number of patients fetched:", res.data?.length || 0);
+      set({ patients: res.data || [] });
     } catch (error) {
-      console.error("Error fetching patients:", error);
+      console.error("Error fetching patients (API failure):", error);
+      console.error("Response data:", error.response?.data);
       toast.error(error.response?.data?.message || "Failed to fetch patients");
+      set({ patients: [] });
     } finally {
       set({ isFetchingPatients: false });
     }

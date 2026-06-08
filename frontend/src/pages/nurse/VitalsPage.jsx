@@ -55,7 +55,21 @@ const VitalsPage = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (patientIdSearch.trim()) {
-      fetchVitals(patientIdSearch);
+      const term = patientIdSearch.toLowerCase().trim();
+      // Only find exact or partial matches locally to resolve the ID securely
+      const matchedPatient = patients.find(p => 
+        p.fullName?.toLowerCase().includes(term) ||
+        p.email?.toLowerCase().includes(term) ||
+        p.medicalRecordNumber?.toLowerCase().includes(term)
+      );
+      
+      if (matchedPatient) {
+        fetchVitals(matchedPatient._id);
+      } else {
+        toast.error("No patient found matching that search");
+        // Clear vitals if no match
+        useNurseStore.setState({ vitals: [] });
+      }
     }
   };
 
@@ -159,7 +173,9 @@ const VitalsPage = () => {
                           </div>
                         ))
                       ) : (
-                        <div className="p-4 text-center text-sm text-slate-500">No patients found.</div>
+                        <div className="p-4 text-center text-sm text-slate-500">
+                          {patients.length === 0 ? "No patient accounts available" : "No patients match your search."}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -285,7 +301,7 @@ const VitalsPage = () => {
               type="text" 
               value={patientIdSearch}
               onChange={(e) => setPatientIdSearch(e.target.value)}
-              placeholder="Search by Patient ID..." 
+              placeholder="Search patient by name, email, or medical record number" 
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#698bf4] focus:border-transparent outline-none text-sm"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
