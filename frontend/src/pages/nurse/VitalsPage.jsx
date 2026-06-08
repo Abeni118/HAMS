@@ -1,15 +1,47 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { useNurseStore } from "../../store/useNurseStore";
-import { Activity, Search, Plus, Save } from "lucide-react";
+import { Activity, Search, Plus, Save, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 
 const VitalsPage = () => {
-  const { vitals, isFetchingVitals, fetchVitals, recordVitals, isRecordingVitals } = useNurseStore();
+  const { vitals, isFetchingVitals, fetchVitals, recordVitals, isRecordingVitals, patients, fetchPatients, isFetchingPatients } = useNurseStore();
   const [patientIdSearch, setPatientIdSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [patientSearchTerm, setPatientSearchTerm] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredPatients = patients.filter(p => {
+    const term = patientSearchTerm.toLowerCase();
+    return (
+      p.fullName?.toLowerCase().includes(term) ||
+      p.email?.toLowerCase().includes(term) ||
+      p.medicalRecordNumber?.toLowerCase().includes(term)
+    );
+  });
+
+  const selectedPatient = patients.find(p => p._id === formData.patientId);
+  
+  const location = useLocation();
+  const prefilledPatientId = location.state?.patientId || "";
   
   const [formData, setFormData] = useState({
-    patientId: "",
+    patientId: prefilledPatientId,
     bloodPressure: "",
     temperature: "",
     heartRate: "",
@@ -30,7 +62,7 @@ const VitalsPage = () => {
   const handleRecordVitals = async (e) => {
     e.preventDefault();
     if (!formData.patientId) {
-      toast.error("Patient ID is required");
+      toast.error("Please select a patient");
       return;
     }
     const success = await recordVitals(formData);
@@ -78,17 +110,60 @@ const VitalsPage = () => {
           </h2>
           <form onSubmit={handleRecordVitals} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">Patient ID</label>
-                <input 
-                  type="text" 
-                  name="patientId" 
-                  value={formData.patientId} 
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#698bf4] focus:border-transparent outline-none"
-                  placeholder="Enter Patient ID"
-                  required
-                />
+              <div className="space-y-1 relative" ref={dropdownRef}>
+                <label className="text-sm font-medium text-slate-700">Patient</label>
+                <div 
+                  className={`w-full px-4 py-2 border border-slate-200 rounded-xl flex items-center justify-between ${prefilledPatientId ? 'bg-slate-100 cursor-not-allowed' : 'bg-white cursor-pointer focus-within:ring-2 focus-within:ring-[#698bf4] focus-within:border-transparent'}`}
+                  onClick={() => !prefilledPatientId && setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  <span className={`truncate ${!selectedPatient ? 'text-slate-400' : 'text-slate-800'}`}>
+                    {selectedPatient ? `${selectedPatient.fullName} (${selectedPatient.email})` : "Select a patient"}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                </div>
+                
+                {isDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 flex flex-col">
+                    <div className="p-2 border-b border-slate-100">
+                      <div className="relative">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                        <input
+                          type="text"
+                          className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-[#698bf4]"
+                          placeholder="Search name, email, MRN..."
+                          value={patientSearchTerm}
+                          onChange={(e) => setPatientSearchTerm(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </div>
+                    <div className="overflow-y-auto">
+                      {isFetchingPatients ? (
+                        <div className="p-4 text-center text-sm text-slate-500">Loading patients...</div>
+                      ) : filteredPatients.length > 0 ? (
+                        filteredPatients.map(p => (
+                          <div 
+                            key={p._id}
+                            className="px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
+                            onClick={() => {
+                              setFormData({ ...formData, patientId: p._id });
+                              setIsDropdownOpen(false);
+                              setPatientSearchTerm("");
+                            }}
+                          >
+                            <div className="font-medium text-slate-800 truncate">{p.fullName}</div>
+                            <div className="text-xs text-slate-500 flex justify-between">
+                              <span className="truncate mr-2">{p.email}</span>
+                              {p.medicalRecordNumber && <span className="flex-shrink-0">MRN: {p.medicalRecordNumber}</span>}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-sm text-slate-500">No patients found.</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Blood Pressure</label>

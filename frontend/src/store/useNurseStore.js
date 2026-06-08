@@ -13,6 +13,21 @@ export const useNurseStore = create((set, get) => ({
   isFetchingNotes: false,
   isRecordingVitals: false,
   isUpdatingQueue: false,
+  patients: [],
+  isFetchingPatients: false,
+
+  fetchPatients: async () => {
+    set({ isFetchingPatients: true });
+    try {
+      const res = await axiosInstance.get("/patients");
+      set({ patients: res.data });
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+      toast.error(error.response?.data?.message || "Failed to fetch patients");
+    } finally {
+      set({ isFetchingPatients: false });
+    }
+  },
 
   fetchStats: async () => {
     set({ isFetchingStats: true });
